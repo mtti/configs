@@ -1,8 +1,8 @@
 {
-  "name": "@mtti/typescript-base",
+  "name": "@mtti/configs",
   "version": "0.1.0",
-  "description": "TypeScript backend project template",
-  "repository": "github:mtti/typescript-base",
+  "description": "NodeJS application configuration manager",
+  "repository": "github:mtti/configs",
   "author": "Matti Hiltunen",
   "license": "Apache-2.0",
   "private": true,
@@ -26,7 +26,10 @@
     "dist"
   ],
   "devDependencies": {
+    "@types/fs-extra": "^8.0.0",
     "@types/jest": "24.0.18",
+    "@types/js-yaml": "^3.12.1",
+    "@types/node": "12.7.5",
     "@typescript-eslint/eslint-plugin": "2.2.0",
     "@typescript-eslint/parser": "2.2.0",
     "eslint": "6.4.0",
@@ -35,5 +38,10 @@
     "jest": "24.9.0",
     "ts-jest": "24.1.0",
     "typescript": "3.6.3"
+  },
+  "dependencies": {
+    "@mtti/deps": "^0.2.0",
+    "fs-extra": "^8.1.0",
+    "js-yaml": "^3.13.1"
   }
 }

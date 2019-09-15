@@ -48,6 +48,9 @@
         "@typescript-eslint/no-unused-vars": ["error", {
             "args": "none"
         }],
-        "operator-linebreak": 0
+        "@typescript-eslint/no-inferrable-types": 0,
+        "operator-linebreak": 0,
+        "import/order": 0,
+        "no-restricted-syntax": 0
     }
 }
