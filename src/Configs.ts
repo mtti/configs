@@ -1,5 +1,7 @@
 import fs from 'fs-extra';
+import { injectClass } from '@mtti/deps';
 import path from 'path';
+import { toArray } from './utils';
 import { Value } from './Value';
 import yaml from 'js-yaml';
 
@@ -12,9 +14,10 @@ export class Configs {
    * @param keys Key or keys to refer to the value by.
    */
   define(keys: string|string[]): Value {
-    const def = new Value(this, keys);
+    const keyArray = toArray(keys);
+    const def = new Value(this, keyArray);
 
-    for (const key of keys) {
+    for (const key of keyArray) {
       if (this._values[key]) {
         throw new Error(`Already defined: ${key}`);
       }
@@ -71,7 +74,7 @@ export class Configs {
    */
   async tryFile(source: string): Promise<boolean> {
     try {
-      this.loadFromFile(source);
+      await this.loadFromFile(source);
       return true;
     } catch {
       return false;
@@ -112,3 +115,4 @@ export class Configs {
     return result;
   }
 }
+injectClass([], Configs);

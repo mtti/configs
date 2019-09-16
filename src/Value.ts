@@ -25,7 +25,7 @@ export class Value {
 
   private _array: boolean = false;
 
-  private _type?: ItemType = String;
+  private _type?: ItemType;
 
   private _transformer?: (value: unknown) => unknown[];
 
