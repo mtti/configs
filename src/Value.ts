@@ -47,6 +47,13 @@ export class Value {
     throw new Error(`Not set: ${this._keys[0]}`);
   }
 
+  /**
+   * A boolean indicating if any value has been set.
+   */
+  get hasValue(): boolean {
+    return !!this._value;
+  }
+
   constructor(parent: ValueContainer, keys: string|string[]) {
     this._parent = parent;
     this._keys = toArray(keys);

@@ -63,11 +63,44 @@ export class Configs {
     }
   }
 
+  /**
+   * Load configuration options from a file. If the file does not exist,
+   * `false` is returned without throwing an error.
+   *
+   * @param source Path to the source file.
+   */
+  async tryFile(source: string): Promise<boolean> {
+    try {
+      this.loadFromFile(source);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get the value of a configuration option. If the requested name is unknown
+   * or not set, an error is thrown.
+   *
+   * @param key Name of the value to get
+   */
   get(key: string): unknown {
     if (!this._values[key]) {
       throw new Error(`Not defined: ${key}`);
     }
     return this._values[key].value;
+  }
+
+  /**
+   * Check if a configuration option has been set.
+   *
+   * @param key Name of the option of check
+   */
+  has(key: string): boolean {
+    if (!this._values[key]) {
+      return false;
+    }
+    return this._values[key].hasValue;
   }
 
   getMany(keys: string[]): Record<string, unknown> {
