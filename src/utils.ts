@@ -71,3 +71,16 @@ export function cleanEnv(
 ): Record<string, string> {
   return fromEntries(cleanEnvEntries(Object.entries(subject)));
 }
+
+/**
+ * Generate strings of `base` suffixed with each item from `suffixes`.
+ *
+ * @param base
+ * @param prefixes
+ */
+export function generateSuffixed(
+  base: string,
+  suffixes: string[],
+): string[] {
+  return suffixes.map((prefix) => `${base}${prefix}`);
+}

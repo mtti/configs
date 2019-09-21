@@ -18,6 +18,8 @@ export class Value {
 
   private _values: string[]|null = null;
 
+  private _mutable: boolean = true;
+
   /**
    * The main key of the configuration option.
    */
@@ -29,6 +31,8 @@ export class Value {
    * Get the value as an array.
    */
   get value(): string[] {
+    this._mutable = false;
+
     if (this._values) {
       return [...this._values];
     }
@@ -65,6 +69,9 @@ export class Value {
   }
 
   set(value: string|string[]): this {
+    if (!this._mutable) {
+      throw new Error(`${this.key} is immutable`);
+    }
     this._values = stringify(value);
     return this;
   }

@@ -1,11 +1,21 @@
 import path from 'path';
+import { EventEmitter } from 'events';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import { expectSingle } from './expectSingle';
 import { Value } from './Value';
-import { cleanEnv, fromEntries, toArray } from './utils';
+import {
+  cleanEnv,
+  fromEntries,
+  generateSuffixed,
+  toArray,
+} from './utils';
 
-export class Configs {
+export interface Configs {
+  on(event: 'loadFromFile', listener: (file: string) => void): this;
+}
+
+export class Configs extends EventEmitter {
   private _values: Record<string, Value> = {};
 
   /**
@@ -46,6 +56,45 @@ export class Configs {
   }
 
   /**
+   * Load values from the current process environment.
+   */
+  async loadFromProcess(): Promise<string[]> {
+    const env = process.env.NODE_ENV || 'development';
+
+    const configPath = this.has('configPath')
+      ? this.get('configPath')
+      : path.join(process.cwd(), 'config');
+
+    const extensions = ['.json', '.yml', '.yaml'];
+    const loadedFiles: string[] = [];
+
+    // First, load common values
+    const loadedCommonFile = await this.tryFirst(generateSuffixed(
+      path.join(configPath, 'common'),
+      extensions,
+    ));
+    if (loadedCommonFile) {
+      loadedFiles.push(loadedCommonFile);
+    }
+
+    // Environment-specific configuration file overrides common values
+    const loadedEnvFile = await this.tryFirst(generateSuffixed(
+      path.join(configPath, env),
+      extensions,
+    ));
+    if (loadedEnvFile) {
+      loadedFiles.push(loadedEnvFile);
+    }
+
+    // Environment variables override all files
+    this.setEnv(process.env);
+
+    // TODO: Command line options
+
+    return loadedFiles;
+  }
+
+  /**
    * Set configuration values from a file.
    *
    * The type of file is determined based on extension. Supported extensions:
@@ -65,6 +114,8 @@ export class Configs {
     } else {
       throw new Error(`Unrecognized file extension: ${extension}`);
     }
+
+    this.emit('loadFromFile', source);
   }
 
   /**
@@ -80,6 +131,24 @@ export class Configs {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Tries to load values from a list of files, returning after the first
+   * successful load.
+   *
+   * @param files List of paths to try.
+   * @returns The path that was loaded, or `null` if none of them were.
+   */
+  async tryFirst(files: string[]): Promise<string|null> {
+    for (const file of files) {
+      // Rule disabled because the file load order needs to be predictable
+      // eslint-disable-next-line no-await-in-loop
+      if (await this.tryFile(file)) {
+        return file;
+      }
+    }
+    return null;
   }
 
   /**
