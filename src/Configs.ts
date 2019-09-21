@@ -1,9 +1,9 @@
+import { expectSingle } from './expectSingle';
 import fs from 'fs-extra';
-import { injectClass } from '@mtti/deps';
 import path from 'path';
-import { toArray } from './utils';
 import { Value } from './Value';
 import yaml from 'js-yaml';
+import { cleanEnv, fromEntries, toArray } from './utils';
 
 export class Configs {
   private _values: Record<string, Value> = {};
@@ -27,9 +27,10 @@ export class Configs {
     return def;
   }
 
-  setEnv(env: Record<string, unknown>): void {
+  setEnv(env: Record<string, string|undefined>): void {
+    const cleaned = cleanEnv(env);
     Object.entries(this._values).forEach(([, value]) => {
-      value.setFromEnv(env);
+      value.setFromEnv(cleaned);
     });
   }
 
@@ -38,7 +39,7 @@ export class Configs {
    *
    * @param source Key-value pairs to set.
    */
-  setMany(source: Record<string, unknown>): void {
+  setMany(source: Record<string, string>): void {
     Object.entries(this._values).forEach(([, value]) => {
       value.setFromObj(source);
     });
@@ -82,12 +83,26 @@ export class Configs {
   }
 
   /**
-   * Get the value of a configuration option. If the requested name is unknown
-   * or not set, an error is thrown.
+   * Get the value of a configuration option, expecting a single value. If
+   * the option is undefined, has no value or has multiple values, an error
+   * is thrown.
    *
    * @param key Name of the value to get
    */
-  get(key: string): unknown {
+  get(key: string): string {
+    if (!this._values[key]) {
+      throw new Error(`Not defined: ${key}`);
+    }
+    return expectSingle(this._values[key].value);
+  }
+
+  /**
+   * Get the value of an option as an array regardless of how many values it
+   * has. If the option is undefined or has no value, an error is thrown.
+   *
+   * @param key Name of the option to retrieve.
+   */
+  getArray(key: string): string[] {
     if (!this._values[key]) {
       throw new Error(`Not defined: ${key}`);
     }
@@ -106,13 +121,15 @@ export class Configs {
     return this._values[key].hasValue;
   }
 
-  getMany(keys: string[]): Record<string, unknown> {
-    const result: Record<string, unknown> = {};
-    // eslint-disable-next-line no-restricted-syntax
-    for (const key of keys) {
-      result[key] = this.get(key);
-    }
-    return result;
+  /**
+   * Get many options at once, expecting all to be single values. If any option
+   * is undefined or contains multiple values, an error is throw.
+   *
+   * @param keys Options keys to retrieve.
+   */
+  getMany(keys: string[]): Record<string, string> {
+    return fromEntries(keys.map(
+      (key): [string, string] => [key, this.get(key)],
+    ));
   }
 }
-injectClass([], Configs);

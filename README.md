@@ -1,7 +1,19 @@
 
-Simple NodeJS application configuration manager.
+Simple TypeScript application configuration manager. Not intended to be a fully featured, extensively configurable parser but a lightweight solution for situations that just require mapping string keys to string values.
 
 * Keys are always strings. Each value can be aliased to multiple keys.
-* Values can be `String`, `Number` or an array of either.
+* Option values can be strings or arrays of strings.
 * Separate key map for setting values from environment variables.
-* Helpers for injecting values to consumers with [@mtti/deps](https://github.com/mtti/deps).
+
+## Usage example
+
+```typescript
+import { Configs } from '@mtti/configs';
+
+const configs = new Configs();
+
+configs.define('redisUrl')
+  .default('redis://localhost:6379/0')
+  .env('REDIS_URL');
+
+```
