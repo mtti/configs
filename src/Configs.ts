@@ -1,8 +1,8 @@
-import { expectSingle } from './expectSingle';
-import fs from 'fs-extra';
 import path from 'path';
-import { Value } from './Value';
+import fs from 'fs-extra';
 import yaml from 'js-yaml';
+import { expectSingle } from './expectSingle';
+import { Value } from './Value';
 import { cleanEnv, fromEntries, toArray } from './utils';
 
 export class Configs {
