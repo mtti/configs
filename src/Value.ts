@@ -1,5 +1,6 @@
 import {
   stringify,
+  stringifyArray,
   toArray,
 } from './utils';
 
@@ -15,6 +16,8 @@ export class Value {
   private _default?: string[];
 
   private _env: string[] = [];
+
+  private _arg: string[] = [];
 
   private _values: string[]|null = null;
 
@@ -59,7 +62,7 @@ export class Value {
   }
 
   default(value: string|string[]): this {
-    this._default = stringify(value);
+    this._default = stringifyArray(toArray(value));
     return this;
   }
 
@@ -68,11 +71,16 @@ export class Value {
     return this;
   }
 
+  arg(value: string|string[]): this {
+    this._arg = toArray(value);
+    return this;
+  }
+
   set(value: string|string[]): this {
     if (!this._mutable) {
       throw new Error(`${this.key} is immutable`);
     }
-    this._values = stringify(value);
+    this._values = stringifyArray(toArray(value));
     return this;
   }
 
@@ -97,6 +105,15 @@ export class Value {
     for (const key of this._env) {
       if (env[key]) {
         this.setRaw(env[key]);
+      }
+    }
+    return this;
+  }
+
+  setFromArgs(args: Record<string, unknown>): this {
+    for (const key of this._arg) {
+      if (args[key]) {
+        this.setRaw(stringify(args[key]));
       }
     }
     return this;

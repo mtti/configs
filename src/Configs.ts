@@ -1,6 +1,7 @@
 import path from 'path';
 import { EventEmitter } from 'events';
 import fs from 'fs-extra';
+import minimist from 'minimist';
 import yaml from 'js-yaml';
 import { expectSingle } from './expectSingle';
 import { Value } from './Value';
@@ -16,7 +17,9 @@ export interface Configs {
 }
 
 export class Configs extends EventEmitter {
-  private _values: Record<string, Value> = {};
+  private _options: Value[] = [];
+
+  private _optionsByKey: Record<string, Value> = {};
 
   /**
    * Define a new configuration value.
@@ -25,23 +28,36 @@ export class Configs extends EventEmitter {
    */
   define(keys: string|string[]): Value {
     const keyArray = toArray(keys);
-    const def = new Value(this, keyArray);
+    const option = new Value(this, keyArray);
+
+    this._options.push(option);
 
     for (const key of keyArray) {
-      if (this._values[key]) {
+      if (this._optionsByKey[key]) {
         throw new Error(`Already defined: ${key}`);
       }
-      this._values[key] = def;
+      this._optionsByKey[key] = option;
     }
 
-    return def;
+    return option;
   }
 
   setEnv(env: Record<string, string|undefined>): void {
     const cleaned = cleanEnv(env);
-    Object.entries(this._values).forEach(([, value]) => {
-      value.setFromEnv(cleaned);
-    });
+    for (const option of this._options) {
+      option.setFromEnv(cleaned);
+    }
+  }
+
+  /**
+   * Set values from command line arguments.
+   *
+   * @param args
+   */
+  setFromArgs(args: Record<string, unknown>): void {
+    for (const option of this._options) {
+      option.setFromArgs(args);
+    }
   }
 
   /**
@@ -50,9 +66,9 @@ export class Configs extends EventEmitter {
    * @param source Key-value pairs to set.
    */
   setMany(source: Record<string, string>): void {
-    Object.entries(this._values).forEach(([, value]) => {
-      value.setFromObj(source);
-    });
+    for (const option of this._options) {
+      option.setFromObj(source);
+    }
   }
 
   /**
@@ -89,7 +105,8 @@ export class Configs extends EventEmitter {
     // Environment variables override all files
     this.setEnv(process.env);
 
-    // TODO: Command line options
+    // Command line arguments
+    this.setFromArgs(minimist(process.argv.slice(2)));
 
     return loadedFiles;
   }
@@ -159,10 +176,10 @@ export class Configs extends EventEmitter {
    * @param key Name of the value to get
    */
   get(key: string): string {
-    if (!this._values[key]) {
+    if (!this._optionsByKey[key]) {
       throw new Error(`Not defined: ${key}`);
     }
-    return expectSingle(this._values[key].value);
+    return expectSingle(this._optionsByKey[key].value);
   }
 
   /**
@@ -172,10 +189,10 @@ export class Configs extends EventEmitter {
    * @param key Name of the option to retrieve.
    */
   getArray(key: string): string[] {
-    if (!this._values[key]) {
+    if (!this._optionsByKey[key]) {
       throw new Error(`Not defined: ${key}`);
     }
-    return this._values[key].value;
+    return this._optionsByKey[key].value;
   }
 
   /**
@@ -184,10 +201,10 @@ export class Configs extends EventEmitter {
    * @param key Name of the option of check
    */
   has(key: string): boolean {
-    if (!this._values[key]) {
+    if (!this._optionsByKey[key]) {
       return false;
     }
-    return this._values[key].hasValue;
+    return this._optionsByKey[key].hasValue;
   }
 
   /**

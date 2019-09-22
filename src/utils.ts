@@ -36,19 +36,27 @@ export function isStringArray(subject: unknown): subject is string[] {
   return true;
 }
 
-export function stringify(source: unknown): string[] {
-  return toArray(source).map((value) => {
-    const type = typeof value;
+export function stringify(value: unknown): string {
+  const type = typeof value;
 
-    if (type === 'string') {
-      return value as string;
+  if (type === 'string') {
+    return value as string;
+  }
+  if (type === 'number') {
+    return (value as number).toString(10);
+  }
+  if (type === 'boolean') {
+    if (value === true) {
+      return 'true';
     }
-    if (type === 'number') {
-      return (value as number).toString(10);
-    }
+    return '';
+  }
 
-    throw new Error(`Expected string or number, got ${type}`);
-  });
+  throw new Error(`Unexpected ${type}`);
+}
+
+export function stringifyArray(source: unknown[]): string[] {
+  return source.map(stringify);
 }
 
 export function cleanEnvEntries(
