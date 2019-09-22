@@ -5,7 +5,6 @@
   "repository": "github:mtti/configs",
   "author": "Matti Hiltunen",
   "license": "Apache-2.0",
-  "private": true,
   "engines": {
     "node": ">=10.15.0"
   },
