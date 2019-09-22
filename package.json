@@ -1,6 +1,6 @@
 {
   "name": "@mtti/configs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "NodeJS application configuration manager",
   "repository": "github:mtti/configs",
   "author": "Matti Hiltunen",
