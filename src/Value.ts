@@ -1,4 +1,5 @@
 import { toArray } from '@mtti/funcs';
+import NodeVault from 'node-vault';
 import {
   stringify,
   stringifyArray,
@@ -18,6 +19,10 @@ export class Value {
   private _env: string[] = [];
 
   private _arg: string[] = [];
+
+  private _vaultPath?: string;
+
+  private _vaultKey?: string;
 
   private _values: string[]|null = null;
 
@@ -76,6 +81,18 @@ export class Value {
     return this;
   }
 
+  /**
+   * Define HashiCorp Vault secret path and key to fetch value from.
+   *
+   * @param path Path to the secret.
+   * @param key Key under the `data` object in the Vault response.
+   */
+  vault(path: string, key: string): this {
+    this._vaultPath = path;
+    this._vaultKey = key;
+    return this;
+  }
+
   set(value: string|string[]): this {
     if (!this._mutable) {
       throw new Error(`${this.key} is immutable`);
@@ -117,5 +134,22 @@ export class Value {
       }
     }
     return this;
+  }
+
+  async setFromVault(vaultClient: NodeVault.Client): Promise<boolean> {
+    if (!this._vaultPath || !this._vaultKey) {
+      return false;
+    }
+    const response = await vaultClient.read(this._vaultPath);
+
+    if (!response.data) {
+      return false;
+    }
+    if (!response.data[this._vaultKey]) {
+      return false;
+    }
+
+    this.setRaw(stringify(response.data[this._vaultKey]));
+    return true;
   }
 }
