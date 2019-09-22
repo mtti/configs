@@ -1,5 +1,6 @@
 import path from 'path';
 import { EventEmitter } from 'events';
+import NodeVault from 'node-vault';
 import fs from 'fs-extra';
 import minimist from 'minimist';
 import yaml from 'js-yaml';
@@ -12,6 +13,7 @@ import {
 
 export interface Configs {
   on(event: 'loadFromFile', listener: (file: string) => void): this;
+  on(event: 'loadFromVault', listener: (count: number) => void): this;
 }
 
 export class Configs extends EventEmitter {
@@ -67,6 +69,25 @@ export class Configs extends EventEmitter {
     for (const option of this._options) {
       option.setFromObj(source);
     }
+  }
+
+  /**
+   * Load secrets from Vault.
+   *
+   * @param vaultClient
+   */
+  async loadFromVault(vaultClient: NodeVault.Client): Promise<number> {
+    let count = 0;
+    for (const option of this._options) {
+      // eslint-disable-next-line no-await-in-loop
+      if (await option.setFromVault(vaultClient)) {
+        count += 1;
+      }
+    }
+    if (count > 0) {
+      this.emit('loadFromVault', count);
+    }
+    return count;
   }
 
   /**
