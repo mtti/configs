@@ -143,8 +143,11 @@ export class Configs extends EventEmitter {
     try {
       await this.loadFromFile(source);
       return true;
-    } catch {
-      return false;
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        return false;
+      }
+      throw err;
     }
   }
 
