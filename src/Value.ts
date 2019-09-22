@@ -1,7 +1,7 @@
+import { toArray } from '@mtti/funcs';
 import {
   stringify,
   stringifyArray,
-  toArray,
 } from './utils';
 
 export type ValueContainer = {

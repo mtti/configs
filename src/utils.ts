@@ -1,28 +1,4 @@
-/**
- * Return `value` if it's an array, or an array with just `value` if it's not.
- *
- * @param value
- */
-export function toArray<T>(value: T|T[]): T[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-  return [value];
-}
-
-/**
- * Construct an object from an array of key-value pairs.
- *
- * @param entries
- */
-export function fromEntries<T>(entries: [string, T][]): Record<string, T> {
-  return entries
-    .reduce((
-      result,
-      [key, value],
-    ) => ({ ...result, [key]: value }),
-    ({} as Record<string, T>));
-}
+import { fromEntries } from '@mtti/funcs';
 
 export function isStringArray(subject: unknown): subject is string[] {
   if (!Array.isArray(subject)) {

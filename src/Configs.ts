@@ -3,13 +3,11 @@ import { EventEmitter } from 'events';
 import fs from 'fs-extra';
 import minimist from 'minimist';
 import yaml from 'js-yaml';
-import { expectSingle } from './expectSingle';
+import { expectSingle, fromEntries, toArray } from '@mtti/funcs';
 import { Value } from './Value';
 import {
   cleanEnv,
-  fromEntries,
   generateSuffixed,
-  toArray,
 } from './utils';
 
 export interface Configs {
